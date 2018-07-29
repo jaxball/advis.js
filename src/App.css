@@ -1,0 +1,225 @@
+.App {
+  /*text-align: center;*/
+}
+
+.img {
+  text-align: left;
+}
+
+.App-logo {
+  animation: App-logo-spin infinite 20s linear;
+  height: 80px;
+}
+
+.App-header {
+  background-color: #222;
+  height: 150px;
+  padding: 20px;
+  color: white;
+}
+
+.App-title {
+  font-size: 1.5em;
+}
+
+.App-intro {
+  font-size: large;
+}
+
+.SplitPane {
+  padding: 10px;
+}
+
+#status {
+    margin-top: 30px;
+    font-size: 20px;
+  }
+  .pred-container {
+    margin-bottom: 20px;
+  }
+  .pred-container > div {
+    display: inline-block;
+    margin-right: 20px;
+    vertical-align: top;
+  }
+  .row {
+    display: table-row;
+  }
+  .cell {
+    display: table-cell;
+    padding-right: 20px;
+  }
+
+@keyframes App-logo-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/*Custom defined*/
+
+/*Banner*/
+.banner {
+  background-size: cover;
+  /*background-position: center;*/
+  min-height: 250px;
+  padding-top: 60px;
+  padding-bottom: 18px;
+  position: relative;
+}
+
+.banner-cover {
+  position: relative;
+  background: -webkit-linear-gradient(#eeede2, #a3d5bc, #6ab8b5, #42737f);
+  background: -moz-linear-gradient(#eeede2, #a3d5bc, #6ab8b5, #42737f);
+  background: linear-gradient(#eeede2, #a3d5bc, #6ab8b5, #42737f);
+
+  background-size: cover;
+  background-position: center;
+  min-height: 400px;
+  padding-top: 88px;
+  padding-bottom: 32px;
+}
+
+/*Page intro*/
+.advis-shine {
+  margin: auto;
+  max-width: 700px;
+  color: white;
+  font-size: 100px;
+  font-weight: 380;
+  background-position: left;
+}
+
+.Page-intro-title {
+  margin: auto;
+  max-width: 700px;
+  color: white;
+  text-align: center;
+  font-weight: 250;
+  font-size: 60px;
+}
+
+.Page-intro-description {
+  margin: auto;
+  max-width: 700px;
+  color: white;
+  text-align: center;
+  font-weight: bold;
+  font-size: 20px;
+  margin-top: 20px;
+}
+
+.Page-intro-footer {
+  margin: auto;
+  max-width: 700px;
+  color: white;
+  text-align: center;
+  font-size: 20px;
+  margin-top: 20px;
+}
+
+/* Explanations */
+.Explanation-intro {
+  /*color: #111;*/
+  max-width: 700px;
+  padding: 0 25px;
+  margin: auto;
+  margin-top: 60px;
+  margin-bottom: 10px;
+
+  font-size: 20px;
+  line-height: 1.5;
+  font-family: ColfaxWeb;
+}
+
+.Explanation-body {
+  /*color: #111;*/
+  max-width: 700px;
+  padding: 0 25px;
+  margin: auto;
+  margin-bottom: 10px;
+
+  font-size: 20px;
+  line-height: 1.5;
+  font-family: ColfaxWeb;
+}
+
+/*Tool specific*/
+.toolBox {
+  max-width: 70%;
+  margin: auto;
+  margin-top: 50px;
+}
+
+.cardSingle {
+  color: rgba(0, 0, 0, 0.87);
+  background-color: rgb(255, 255, 255);
+  transition: all 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms;
+  box-sizing: border-box;
+  font-family: Roboto, sans-serif;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 6px, rgba(0, 0, 0, 0.12) 0px 1px 4px;
+  border-radius: 2px;
+  margin-bottom: 32px;
+  display: flex;
+}
+
+.leftCol {
+  flex: 0 0 50%;
+  margin: 10px;
+}
+.rightCol {
+  flex: 1;
+  margin: 10px;
+}
+
+#halfColumn {
+  display: flex;
+  bottom: 0;
+  margin: 10px;
+}
+
+.overlay {
+    /*position: relative;*/
+    /*width: 227px;*/
+    /*height: 227px;*/
+    /*padding: 25px;*/
+}
+
+.table {
+  margin-top: 5px;
+  margin-left: -13px;
+}
+
+.addButton {
+  margin-top: -50px;
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+
+.sliderStyle {
+  margin-left: 20px;
+  margin-right: 20px;
+  margin-bottom: -30px;
+  margin-top: -10px;
+}
+
+.epsLabel {
+  margin-left: 20px;
+  margin-bottom: 30px;
+  margin-top: -40px;
+}
+
+#heatmap {
+  position: absolute;
+  /*padding-top:0px;*/
+  margin-top: -232px;
+  margin-left: -113px;
+}
+
+.newModelButton {
+  margin-top: -10px;
+  margin-bottom: 30px;
+  margin-left: 10px;
+}
