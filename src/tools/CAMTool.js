@@ -7,6 +7,10 @@ import {Card, FloatingActionButton, RaisedButton} from 'material-ui';
 import ContentAdd from 'material-ui/svg-icons/content/add';
 
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 class CAMBlock extends Component {
   constructor(props) {
     super(props);
@@ -22,8 +26,13 @@ class CAMBlock extends Component {
       attackDisplays: []
     };
 
-    this.net = model.getModel(props.modelName);
-    this.net.load().then(() => {
+    // this.net = model.getModel(props.modelName);
+    
+    model.getModel(props.modelName).then(x => {
+
+      console.log("loaded model (yeeha)", x);
+
+      this.net = x;
       let disp = (
         <Display srcImage={this.state.srcImage}
          net={this.net}
@@ -36,6 +45,34 @@ class CAMBlock extends Component {
         netStatus: 'Loaded'
       });
     });
+
+
+
+    // let disp = (
+    //     <Display srcImage={this.state.srcImage}
+    //      net={this.net}
+    //      ref={(c) => this.mod = c}
+    //      topK={this.state.topK}
+    //      disableSlider={false}/>
+    //   );
+    //   this.state.attackDisplays.push(disp);
+    //   this.setState({
+    //     netStatus: 'Loaded'
+    //   });
+
+    // this.net.load().then(() => {
+    //   let disp = (
+    //     <Display srcImage={this.state.srcImage}
+    //      net={this.net}
+    //      ref={(c) => this.mod = c}
+    //      topK={this.state.topK}
+    //      disableSlider={false}/>
+    //   );
+    //   this.state.attackDisplays.push(disp);
+    //   this.setState({
+    //     netStatus: 'Loaded'
+    //   });
+    // });
   }
 
   newAttack = (event) => {

@@ -3,6 +3,11 @@ import {TableRow, TableRowColumn} from 'material-ui';
 import {scaleSequential} from 'd3-scale';
 import {rgb} from 'd3-color';
 import {interpolateInferno} from 'd3-scale-chromatic'
+// import {MobileNet} from '../models/mobilenet/dist/mobilenet.js';
+import * as tf from '@tensorflow/tfjs';
+
+
+// import * as mobilenet from '../models/mobilenet';
 
 // creds: open source code from PoloClub @ Georgia Institute of Technology
 
@@ -18,9 +23,24 @@ export function drawImage(ctx, src, callback) {
     img.src = src;
 }
 
+export function CAM(softmaxWeights, lastActivation, classX) {
+    console.log("in ui.js CAM(), classX ", classX, tf.tensor1d([classX]), softmaxWeights);
+    var softMaxW = tf.transpose(softmaxWeights).gather(tf.cast(tf.tensor1d([classX]), 'int32'));
+    var lastAct = tf.transpose(lastActivation.reshape([49, 1024]));
+    var cam = tf.matMul(softMaxW, lastAct);
+    cam = cam.reshape([7, 7]);
+    cam = cam.sub(tf.min(cam));
+    cam = cam.div(tf.max(cam));
+    cam = tf.squeeze(tf.image.resizeBilinear(cam.expandDims(2), [227, 227]));
+    return cam;
+};
+
 export function drawCAM(img, net, activation, canvas, id) {
-    const weights = net.getLastWeights();
-    let cam = net.CAM(weights, activation, id);
+
+    let weights = net.model.trainableWeights[81];
+    weights = weights.val.squeeze().squeeze();
+    // const weights = net.getLastWeights();
+    let cam = CAM(weights, activation, id);
 
 
     cam = cam.dataSync();

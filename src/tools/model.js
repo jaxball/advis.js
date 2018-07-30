@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
-import * as dl from 'deeplearn';
-import {MobileNet} from '../models/mobilenet/mobilenet.js';
-// import * as tf from '@tensorflow/tfjs';
-// import * as mobilenet from '@tensorflow-models/mobilenet';
+// import * as dl from 'deeplearn';
+import * as dl from '@tensorflow/tfjs';
+// import {MobileNet} from '../models/mobilenet/mobilenet.js';
+import {MobileNet} from '../models/mobilenet/dist/mobilenet.js';
+import * as mobilenet from '../models/mobilenet';
+
 
 export var modelEnum = { 
   SQUEEZE: 1,
@@ -11,12 +13,21 @@ export var modelEnum = {
 };
 Object.freeze(modelEnum);
 
-export function getModel (modelName){
+export async function getModel (modelName){
 	switch (modelName) {
 		case modelEnum.MOBILE:
-      // const model = await mobilenet.load();
+      const model = await mobilenet.load();
+      console.log('model loaded in getModel()', model);
+      return model;
+
+      // const net = new MobileNet(dl.ENV.math);
+      // console.log("net in getModel(), ", net);
+      // return net;
+
+      // let model = await net.load();
+      // console.log("model in getModel(), ", model);
       // return model;
-			return new MobileNet(dl.ENV.math);
+			// return new MobileNet(dl.ENV.math);  // Deeplearn.js imports
 	}
 
 }
@@ -46,36 +57,69 @@ export function generateAdversarialImage (model, imageArr, eps) {
 	return buff;
 }
 
+/* 
+  Final layers of MobileNet:
+  https://github.com/deepinsight/insightface/issues/40
+
+  73: "conv_pw_12"
+  74: "conv_pw_12_bn"
+  75: "conv_pw_12_relu"
+  76: "conv_dw_13"
+  77: "conv_dw_13_bn"
+  78: "conv_dw_13_relu"
+  79: "conv_pw_13"
+  80: "conv_pw_13_bn"
+  81: "conv_pw_13_relu"
+  82: "global_average_pooling2d_1"
+  83: "reshape_1"
+  84: "dropout"
+  85: "conv_preds"
+  86: "act_softmax"
+  87: "reshape_2"
+*/
 
 export function predict(img, net, classes, callback) {
     const pixels = dl.fromPixels(img);
     const resized = dl.image.resizeBilinear(pixels, [227, 227]);
 
     const t0 = performance.now();
-    const resAll = net.predictWithActivation(resized);
+    console.log("in model.js predict(), net? ", net);
+    const res = net.infer(resized, 'conv_preds').flatten(); // 1000
+    const activations = net.infer(resized, 'conv_pw_13_relu').squeeze(); // 7 7 1024
+    // const gavgpool = net.infer(resized, 'reshape_1'); // 1 1 1 1024
+    // const act_sft = net.infer(resized, 'act_softmax');  // 1 1 1 1000
+    console.log("model.js - net.infer() res.data ", res, activations);
+    // res.print();
+    // acts.print();
     console.log('predict: Classification took ' + parseFloat(Math.round(performance.now() - t0)) + ' milliseconds');
 
-    const res = resAll.logits;
+    // const res = resAll.logits;
     // TODO: fix BUG below
     // let adv = get_adv_xs(net, ['placeholder'], resAll, resized, 0.5);
     // console.log("in predict, adv ", adv);
+
+    console.log("in predict, classes = ", classes);
+    // mobilenet.layers.map(l => l.name);
+    // layers = mobilenet.layers.filter((l) => l.name.startsWith('conv') && !l.name.endsWith('preds'))
     
     const map = new Map();
+    let mNet = new MobileNet(dl.ENV.math);
     if (classes == null) {
         // console.log("predict: classes == null");
-        net.getTopKClasses(res, 1000).then((topK) => {
+        mNet.getTopKClasses(res, 1000).then((topK) => {
+            // console.log("what is topk? ", topK);
             for (let key in topK) {
                 map.set(key, (topK[key]*100.0).toFixed(2));
             }
-            callback(map, resAll.activation);
+            callback(map, activations);
         });
     } else {
         // console.log("predict: classes != null");
-        net.getTopKClasses(res, 1000).then((topK) => {
+        mNet.getTopKClasses(res, 1000).then((topK) => {
             for (let i = 0; i < 5; i++) {
                 map.set(classes[i], (topK[classes[i]]*100.0).toFixed(2));
             }
-            callback(map, resAll.activation);
+            callback(map, activations);
         });
     }
 }

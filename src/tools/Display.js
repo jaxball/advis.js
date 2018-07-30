@@ -4,7 +4,8 @@ import * as model from './model.js';
 import {Table, TableHeader, TableHeaderColumn, TableBody, TableRow, Paper, Slider} from 'material-ui';
 import {IMAGENET_CLASSES} from '../models/mobilenet/imagenet_classes';
 import '../App.css';
-import * as dl from 'deeplearn';
+// import * as dl from 'deeplearn';
+// import * as dl from '@tensorflow/tfjs';
 
 
 
