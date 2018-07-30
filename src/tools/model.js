@@ -84,8 +84,8 @@ export function predict(img, net, classes, callback) {
 
     const t0 = performance.now();
     console.log("in model.js predict(), net? ", net);
-    const res = net.infer(resized, 'conv_preds').flatten(); // 1000
-    const activations = net.infer(resized, 'conv_pw_13_relu').squeeze(); // 7 7 1024
+    let res = net.infer(resized, 'conv_preds').flatten(); // 1000
+    let activations = net.infer(resized, 'conv_pw_13_relu').squeeze(); // 7 7 1024
     // const gavgpool = net.infer(resized, 'reshape_1'); // 1 1 1 1024
     // const act_sft = net.infer(resized, 'act_softmax');  // 1 1 1 1000
     console.log("model.js - net.infer() res.data ", res, activations);
@@ -95,12 +95,11 @@ export function predict(img, net, classes, callback) {
 
     // const res = resAll.logits;
     // TODO: fix BUG below
-    // let adv = get_adv_xs(net, ['placeholder'], resAll, resized, 0.5);
-    // console.log("in predict, adv ", adv);
-
-    console.log("in predict, classes = ", classes);
-    // mobilenet.layers.map(l => l.name);
-    // layers = mobilenet.layers.filter((l) => l.name.startsWith('conv') && !l.name.endsWith('preds'))
+    let adv = get_adv_xs(net, ['placeholder'], res, resized, 0.2);
+    // test AdvExample Generation
+    console.log("in predict, adv ", adv);
+    res = net.infer(adv, 'conv_preds').flatten();
+    activations = net.infer(adv, 'conv_pw_13_relu').squeeze();
     
     const map = new Map();
     let mNet = new MobileNet(dl.ENV.math);
@@ -133,13 +132,13 @@ const IMAGE_SIZE = 227;
 const optimizer = dl.train.sgd(LEARNING_RATE);
 // end model details
 
-export function get_adv_xs(net, label, resAll, img, eps) {
+export function get_adv_xs(net, label, logits, img, eps) {
   // label: topK,
   // img: pixels
 
   // hardcode a label for panda: logits: 1x1000 , labels: 1x1001
-  let tbuffer = dl.buffer([1001]);
-  tbuffer.set(1, 389);
+  let tbuffer = dl.buffer([1000]);
+  tbuffer.set(1, 388);
   const hclabel = tbuffer.toTensor();
 
   let x2d = img.flatten().toFloat();
@@ -153,7 +152,8 @@ export function get_adv_xs(net, label, resAll, img, eps) {
 
   // Following: given x and corresponding groundtruth, derives y with model and computes softmax cross entropy between logits and labels.
   // Right now, groundtruth is hardcoded-in for testing. 
-  const xtoy = x => { return net.predict(x.toFloat()); };
+   // const res = net.infer(resized, 'conv_preds').flatten(); 
+  const xtoy = x => { return net.infer(x.toFloat(), 'conv_preds').flatten(); };
   const yloss = (gt, x) => dl.losses.softmaxCrossEntropy(gt, xtoy(x));
   var loss_func = function(x) { return yloss(hclabel, x); };
 
@@ -173,13 +173,16 @@ export function get_adv_xs(net, label, resAll, img, eps) {
   let _grad_func = function () { return loss_func(img); }
   console.log("what is _grad_func?", typeof _grad_func);
   var _im = dl.environment.ENV.engine.gradients(_grad_func, [img]);
-  // console.log("right before printing gradients of img");
-  // _im.print();
+
+  // Able to get the gradients!
+  let im_gradients = _im.grads[0];
+  // console.log("printing gradients of img", _im, _im.grads[0]);
+  dl.print(_im.grads[0]);
 
   // let b = loss_func(img);
   // b.print(); 
   // console.log("b loss ", b);
-  // let f_loss = x => dl.losses.softmaxCrossEntropy(hclabel, resAll.logits);
+  // let f_loss = x => dl.losses.softmaxCrossEntropy(hclabel, logits);
 
 /*
   const g_func = dl.grad(loss_func);
@@ -189,19 +192,19 @@ export function get_adv_xs(net, label, resAll, img, eps) {
 
 
   // const cost = optimizer.computeGradients(() => {
-  //     adv_img = generate_adv_xs(hclabel, img, resAll.logits, 0.2);
-  //     return dl.losses.softmaxCrossEntropy(hclabel, resAll.logits).mean();
+      adv_img = generate_adv_xs(hclabel, img, logits, im_gradients, eps);
+      // return dl.losses.softmaxCrossEntropy(hclabel, logits).mean();
   // });
-  // return adv_img;
+  return adv_img;
 }
 
 
-function generate_adv_xs(label, x2d, logits, eps) {
-    let _loss = dl.losses.softmaxCrossEntropy(label, logits);
-    let loss_grad_func = dl.grad( () => { return _loss });
-    let grad = loss_grad_func(x2d);
-    let scaled_grad = scale_grad(grad, eps);
-    let perturbed_img = dl.add(x2d, scaled_grad)
+function generate_adv_xs(label, x2d, logits, grads, eps) {
+    // let _loss = dl.losses.softmaxCrossEntropy(label, logits);
+    // let loss_grad_func = dl.grad( () => { return _loss });
+    // let grad = loss_grad_func(x2d);
+    let scaled_grad = scale_grad(grads, eps);
+    let perturbed_img = dl.add(dl.cast(x2d,'float32'), scaled_grad)
       .clipByValue(MIN_PIXEL_VALUE, MAX_PIXEL_VALUE);
     return perturbed_img;
 }
