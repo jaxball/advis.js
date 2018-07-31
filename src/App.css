@@ -121,13 +121,13 @@
 /* Explanations */
 .Explanation-intro {
   /*color: #111;*/
-  max-width: 700px;
+  max-width: 640px;
   /*padding: 0 25px;*/
   margin: auto;
   margin-top: 35px;
 
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.4;
   font-family: Roboto;
 }
 
@@ -147,7 +147,7 @@
 .toolBox {
   max-width: 94%;
   margin: auto;
-  margin-top: 22px;
+  margin-top: 25px;
   margin-bottom: 0px;
 }
 
