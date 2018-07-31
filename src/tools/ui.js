@@ -79,24 +79,9 @@ export function createCompRows(top, originalTop) {
     for (let i = 0; i < 5; i++) {
         let pair = entries.next().value;
 
-        let change = 0
-        if(originalTop != null) {
-            change = parseFloat(pair[1]) - parseFloat(originalTop.get(pair[0]));
-        } 
-
-        let color = 'black';
-        let plus = '';
-        if (change < 0) {
-            color = 'red'; 
-        } else if (change > 0) {
-            color = 'green';
-            plus = '+';
-        }
-
         rows.push(<TableRow key={pair[0]}>
             <TableRowColumn style={{wordWrap: 'break-word', whiteSpace: 'normal'}}>{pair[0]}</TableRowColumn>
             <TableRowColumn style={{textAlign: 'right'}}>{pair[1]}</TableRowColumn>
-            <TableRowColumn style={{textAlign: 'right', color: color}}>{plus}{change.toFixed(2)}</TableRowColumn>
         </TableRow>);
     }
     return rows;

@@ -188,7 +188,9 @@ class Display extends Component {
     const epsMax = 100;
     const epsMin = 0;
     const sliderOn = this.state.disableSlider ? (
-      <div></div>
+      <div>
+        <span className="toggleHint">click rows to toggle heatmap →</span> 
+      </div>
     ) : (
       <div>
         <Slider min={epsMin}
@@ -228,9 +230,6 @@ class Display extends Component {
               <TableHeaderColumn style={{textAlign: 'right',
                                          cursor: 'pointer'}}>
                 Confidence %
-              </TableHeaderColumn>
-              <TableHeaderColumn style={{textAlign: 'right'}}>
-                Absolute % Change
               </TableHeaderColumn>
             </TableRow>
           </TableHeader>

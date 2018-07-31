@@ -8,7 +8,10 @@ export class IntroExplanation extends Component {
   render() {
     return (
       <div>
-
+        <h3>How can we detect an adversarial example?</h3>
+        <p>
+          When you see a corrupted image of, let's say, a panda - you recognize it. Probably by the colorful noise. But for the machine it's not a noisy photo of a panda, it's a chihuahua. And it's so sure about it, that it doesn't make sense to question its own decisions. <br /><br /><strong>AdVis.js</strong> lets you explore <em>adversarial attacks</em> by dynamically presenting the classification scores and CAM heatmap visualization as you tune the strength of perturbation applied in real-time. Try changing the epsilon value via the slider below and see for yourself! 
+        </p>
       </div>
     );
   }
@@ -22,10 +25,7 @@ export class CAMExplanation extends Component {
   render() {
     return (
       <div style={{fontFamily: "Roboto"}}>
-        <h3>How can we detect an adversarial example?</h3>
-        <p>
-          When you see a corrupted image of, let's say, a panda - you recognize it. Probably by the colorful noise. But for the machine it's not a noisy photo of a panda, it's a chihuahua. And it's so sure about it, that it doesn't make sense to question its own decisions. <br /><br /><strong>AdVis.js</strong> lets you explore <em>adversarial attacks</em> by dynamically presenting the classification scores and CAM heatmap visualization as you tune the strength of perturbation applied in real-time. Try changing the epsilon value via the slider below and see for yourself! 
-        </p>
+        
       </div>
     );
   }
@@ -53,12 +53,12 @@ export class DeepDreamExplanation extends Component {
         <p>
           We know that it's almost linear. But to what extent? The exact form (or, using a correct fancy term, "topology") of the class boundary would give us insights about the most efficient attack/defense. 
         </p>
-
-        
+        <br />
         <h3> DeepDream </h3>
         <p>
           In next steps we plan to implement DeepDream feature visualization in the browser as well as Javascript implementations of saliency detection &amp; heatmap overlay. Stay tuned. Code is public at <a href="https://github.com/jaxball/advis.js">GitHub page</a>.
         </p>
+        <br /><br /><br />
       </div>
     );
   }

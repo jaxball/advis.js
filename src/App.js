@@ -48,15 +48,11 @@ class App extends Component {
           <IntroExplanation/>
         </div>
 
-        <div className="Explanation-body">
-          <CAMExplanation/>
-        </div>
-
         <div className="toolBox">
           <CAMTool/>
         </div>
 
-        <div className="Explanation-body">
+        <div className="Explanation-intro">
           <DeepDreamExplanation/>
         </div>
 
