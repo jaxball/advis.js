@@ -4,9 +4,7 @@ import * as model from './model.js';
 import {Table, TableHeader, TableHeaderColumn, TableBody, TableRow, Paper, Slider} from 'material-ui';
 import {IMAGENET_CLASSES} from '../models/mobilenet/imagenet_classes';
 import '../App.css';
-// import * as dl from 'deeplearn';
-// import * as dl from '@tensorflow/tfjs';
-
+import * as dl from '@tensorflow/tfjs';
 
 
 const imgStyle = {
@@ -38,8 +36,6 @@ class Display extends Component {
   }
 
   drawCAM = (e) => {
-    console.log("drawCAM")
-    console.log(e);
     this.state.lastSelectedRow = e;
     if (e.length !== 0) {
         let ar = Object.assign([], IMAGENET_CLASSES);
@@ -121,8 +117,6 @@ class Display extends Component {
           });
         }.bind(this));
       }.bind(this));
-      // inject TFJS gradient code
-      // let adv = model.get_adv_xs(batch, batch.labels, batch.xs, 0.5);
     }
     this.props = nProps;
   }
@@ -135,26 +129,57 @@ class Display extends Component {
     if (this.state.srcImageArr === '') {
       console.log('First eps change. Saving the original image.');
       this.state.srcImageArr = ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT).data;
+      this.state.srcImageData = ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      this.state.srcCanvas = ctx;
     }
 
-    let perturbedImgArr = model.generateAdversarialImage(this.props.net,
-                                                         this.state.srcImageArr,
-                                                         eps);
-    let perturbedImgData = ctx.createImageData(CANVAS_WIDTH, CANVAS_HEIGHT);
-    perturbedImgData.data.set(perturbedImgArr);
-    ctx.putImageData(perturbedImgData, 0, 0);
+    // 4-channel img with alpha
+    const _img = dl.fromPixels(this.state.srcImageData,4);  
+    const pixels3 = dl.fromPixels(this.state.srcImageData,3);
+    // 3-channel img for concat
+    const _img3 = dl.image.resizeBilinear(pixels3, [227, 227]);
 
-    model.predict(perturbedImgData, this.props.net, null, function(top, activation) {
-      let rows = createCompRows(top, null);
-      this.setState({
-        results: rows,
-        activation: activation
+    // if (model.oglabel === '') {
+      model.get_adv_xs(this.props.net, _img, _img3, eps).then(perturbedImg => {
+          let perturbedImgArr = Uint8ClampedArray.from(perturbedImg.dataSync());
+          let perturbedImgData = ctx.createImageData(CANVAS_WIDTH, CANVAS_HEIGHT);
+          perturbedImgData.data.set(perturbedImgArr);
+          ctx.putImageData(perturbedImgData, 0, 0);
+
+          model.predict(perturbedImgData, this.props.net, null, function(top, activation) {
+            let rows = createCompRows(top, null);
+            this.setState({
+              results: rows,
+              activation: activation
+            });
+          }.bind(this));
+
+          const ctxCAM = this.state.cCam.getContext('2d');
+          ctxCAM.clearRect(0, 0, 227, 227);
+          this.drawCAM(this.state.lastSelectedRow);
       });
-    }.bind(this));
+    // } else {
+    //   console.log("display.js oglabel cached! ");
+    //   const perturbedImg = model.get_adv_xs(this.props.net, _img, _img3, eps);
+    //   let perturbedImgArr = Uint8ClampedArray.from(perturbedImg.dataSync());
+    //   console.log("entering get_adv_xs - perturbedImgArr", perturbedImgArr, perturbedImg);
+    //   let perturbedImgData = ctx.createImageData(CANVAS_WIDTH, CANVAS_HEIGHT);
+    //   perturbedImgData.data.set(perturbedImgArr);
+    //   ctx.putImageData(perturbedImgData, 0, 0);
 
-    const ctxCAM = this.state.cCam.getContext('2d');
-    ctxCAM.clearRect(0, 0, 227, 227);
-    this.drawCAM(this.state.lastSelectedRow);
+    //   model.predict(perturbedImgData, this.props.net, null, function(top, activation) {
+    //     let rows = createCompRows(top, null);
+    //     this.setState({
+    //       results: rows,
+    //       activation: activation
+    //     });
+    //   }.bind(this));
+
+    //   const ctxCAM = this.state.cCam.getContext('2d');
+    //   ctxCAM.clearRect(0, 0, 227, 227);
+    //   console.log("update context");
+    //   this.drawCAM(this.state.lastSelectedRow);
+    // }
 
    };
 

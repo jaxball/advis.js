@@ -3,11 +3,7 @@ import {TableRow, TableRowColumn} from 'material-ui';
 import {scaleSequential} from 'd3-scale';
 import {rgb} from 'd3-color';
 import {interpolateInferno} from 'd3-scale-chromatic'
-// import {MobileNet} from '../models/mobilenet/dist/mobilenet.js';
 import * as tf from '@tensorflow/tfjs';
-
-
-// import * as mobilenet from '../models/mobilenet';
 
 // creds: open source code from PoloClub @ Georgia Institute of Technology
 
@@ -24,7 +20,7 @@ export function drawImage(ctx, src, callback) {
 }
 
 export function CAM(softmaxWeights, lastActivation, classX) {
-    console.log("in ui.js CAM(), classX ", classX, tf.tensor1d([classX]), softmaxWeights);
+    // console.log("in ui.js CAM(), classX ", classX, tf.tensor1d([classX]), softmaxWeights);
     var softMaxW = tf.transpose(softmaxWeights).gather(tf.cast(tf.tensor1d([classX]), 'int32'));
     var lastAct = tf.transpose(lastActivation.reshape([49, 1024]));
     var cam = tf.matMul(softMaxW, lastAct);

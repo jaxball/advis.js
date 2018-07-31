@@ -29,9 +29,6 @@ class CAMBlock extends Component {
     // this.net = model.getModel(props.modelName);
     
     model.getModel(props.modelName).then(x => {
-
-      console.log("loaded model (yeeha)", x);
-
       this.net = x;
       let disp = (
         <Display srcImage={this.state.srcImage}
@@ -45,34 +42,6 @@ class CAMBlock extends Component {
         netStatus: 'Loaded'
       });
     });
-
-
-
-    // let disp = (
-    //     <Display srcImage={this.state.srcImage}
-    //      net={this.net}
-    //      ref={(c) => this.mod = c}
-    //      topK={this.state.topK}
-    //      disableSlider={false}/>
-    //   );
-    //   this.state.attackDisplays.push(disp);
-    //   this.setState({
-    //     netStatus: 'Loaded'
-    //   });
-
-    // this.net.load().then(() => {
-    //   let disp = (
-    //     <Display srcImage={this.state.srcImage}
-    //      net={this.net}
-    //      ref={(c) => this.mod = c}
-    //      topK={this.state.topK}
-    //      disableSlider={false}/>
-    //   );
-    //   this.state.attackDisplays.push(disp);
-    //   this.setState({
-    //     netStatus: 'Loaded'
-    //   });
-    // });
   }
 
   newAttack = (event) => {

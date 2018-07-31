@@ -34,10 +34,10 @@ class App extends Component {
         <div className="banner-cover" id="banner">
           <div className="Page-intro-title">
             <span class="advis-shine">AdVis.js</span><br />
-            [preview] Exploring Fast Gradient Sign Method
+            Exploring Fast Gradient Sign Method
           </div>
           <div className="Page-intro-description">
-            Explore adversarial attacks with visual interactive tools. <br />
+            Explore Adversarial Attacks with visual interactive tools. <br />
           </div>
           <div className="Page-intro-footer">
             Advanced Computer Vision @ Georgia Tech 

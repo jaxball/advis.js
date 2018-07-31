@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 // import * as dl from 'deeplearn';
 import * as dl from '@tensorflow/tfjs';
-// import {MobileNet} from '../models/mobilenet/mobilenet.js';
 import {MobileNet} from '../models/mobilenet/dist/mobilenet.js';
 import * as mobilenet from '../models/mobilenet';
 
@@ -17,44 +16,9 @@ export async function getModel (modelName){
 	switch (modelName) {
 		case modelEnum.MOBILE:
       const model = await mobilenet.load();
-      console.log('model loaded in getModel()', model);
       return model;
-
-      // const net = new MobileNet(dl.ENV.math);
-      // console.log("net in getModel(), ", net);
-      // return net;
-
-      // let model = await net.load();
-      // console.log("model in getModel(), ", model);
-      // return model;
-			// return new MobileNet(dl.ENV.math);  // Deeplearn.js imports
 	}
 
-}
-
-export function generateAdversarialImage (model, imageArr, eps) {
-	// TODO: return PERTURBED IMAGE
-  console.log('generateAdversarialImage: ImageArr');
-  console.log(imageArr);
-
-  let buff = new Uint8ClampedArray(227 * 227 *4);
-  let randArr = [-1, 0, 1];
-  for (let y = 0; y < 227; y++) {
-      for (let x = 0; x < 227; x++) {
-          let pos = (y * 227 + x) * 4;
-          let rand0 = randArr[Math.floor(Math.random() * randArr.length)];
-          let rand1 = randArr[Math.floor(Math.random() * randArr.length)];
-          let rand2 = randArr[Math.floor(Math.random() * randArr.length)];
-
-          buff[pos] = imageArr[pos] + eps * rand0;
-          buff[pos + 1] = imageArr[pos + 1] + eps * rand1;
-          buff[pos + 2] = imageArr[pos + 2] + eps * rand2;
-          buff[pos + 3] = imageArr[pos + 3];
-          // imageArr[pos + 3] = .6 * 255;
-      }
-  }
-
-	return buff;
 }
 
 /* 
@@ -83,28 +47,13 @@ export function predict(img, net, classes, callback) {
     const resized = dl.image.resizeBilinear(pixels, [227, 227]);
 
     const t0 = performance.now();
-    console.log("in model.js predict(), net? ", net);
-    let res = net.infer(resized, 'conv_preds').flatten(); // 1000
-    let activations = net.infer(resized, 'conv_pw_13_relu').squeeze(); // 7 7 1024
-    // const gavgpool = net.infer(resized, 'reshape_1'); // 1 1 1 1024
-    // const act_sft = net.infer(resized, 'act_softmax');  // 1 1 1 1000
-    console.log("model.js - net.infer() res.data ", res, activations);
-    // res.print();
-    // acts.print();
+    let res = net.infer(resized, 'conv_preds').flatten();
+    let activations = net.infer(resized, 'conv_pw_13_relu').squeeze();
     console.log('predict: Classification took ' + parseFloat(Math.round(performance.now() - t0)) + ' milliseconds');
 
-    // const res = resAll.logits;
-    // TODO: fix BUG below
-    let adv = get_adv_xs(net, ['placeholder'], res, resized, 0.2);
-    // test AdvExample Generation
-    console.log("in predict, adv ", adv);
-    res = net.infer(adv, 'conv_preds').flatten();
-    activations = net.infer(adv, 'conv_pw_13_relu').squeeze();
-    
     const map = new Map();
     let mNet = new MobileNet(dl.ENV.math);
     if (classes == null) {
-        // console.log("predict: classes == null");
         mNet.getTopKClasses(res, 1000).then((topK) => {
             // console.log("what is topk? ", topK);
             for (let key in topK) {
@@ -113,7 +62,6 @@ export function predict(img, net, classes, callback) {
             callback(map, activations);
         });
     } else {
-        // console.log("predict: classes != null");
         mNet.getTopKClasses(res, 1000).then((topK) => {
             for (let i = 0; i < 5; i++) {
                 map.set(classes[i], (topK[classes[i]]*100.0).toFixed(2));
@@ -130,82 +78,61 @@ const LEARNING_RATE = 0.1;
 const TRAIN_STEPS = 100;
 const IMAGE_SIZE = 227;
 const optimizer = dl.train.sgd(LEARNING_RATE);
+
+// export var oglabel = '';
 // end model details
 
-export function get_adv_xs(net, label, logits, img, eps) {
+export function get_adv_xs(net, img, img3, eps) {
   // label: topK,
   // img: pixels
 
-  // hardcode a label for panda: logits: 1x1000 , labels: 1x1001
   let tbuffer = dl.buffer([1000]);
-  tbuffer.set(1, 388);
-  const hclabel = tbuffer.toTensor();
+  // if (oglabel === '') {
+  return net.classify(img3).then(predictions => {
+    var pred = predictions[0].className;  // giant panda, etc.
 
-  let x2d = img.flatten().toFloat();
- 
-  let adv_img = ''; // empty initialization to be filled in later
+    var imagenet = mobilenet.IMAGENET_CLASSES;
+    Object.keys(imagenet).forEach(function(key) {
+        if (imagenet[key].valueOf() == pred.valueOf()) {
+          tbuffer.set(1, key);
+        }
+    });
+    const oglabel = tbuffer.toTensor();
 
-  // console.log("logits(shortform):", xtoy(img));
-  // let a = xtoy(img);
-  // a.softmax().print();
-  // console.log("xtoy()", x); // Tensor {isDisposed: false, size: 154587, shape: Array(3), dtype: "int32", strides: Array(2), …
+    const xtoy = x => { return net.infer(x.toFloat(), 'conv_preds').flatten(); };
+    const yloss = (gt, x) => dl.losses.softmaxCrossEntropy(gt, xtoy(x));
+    var loss_func = function(x) { return yloss(oglabel, x); };
+    let _grad_func = function () { return loss_func(img3); }
 
-  // Following: given x and corresponding groundtruth, derives y with model and computes softmax cross entropy between logits and labels.
-  // Right now, groundtruth is hardcoded-in for testing. 
-   // const res = net.infer(resized, 'conv_preds').flatten(); 
-  const xtoy = x => { return net.infer(x.toFloat(), 'conv_preds').flatten(); };
-  const yloss = (gt, x) => dl.losses.softmaxCrossEntropy(gt, xtoy(x));
-  var loss_func = function(x) { return yloss(hclabel, x); };
+    var _im = dl.environment.ENV.engine.gradients(_grad_func, [img3]);
+    let im_gradients = _im.grads[0];
 
-  console.log("loss_func!", loss_func);
-  console.log("loss_func(img)", loss_func(img));
+    return generate_adv_xs(img, im_gradients, eps);
+  });
+  // } else {
+  //     console.log("oglabel is cached!");
+  //     const xtoy = x => { return net.infer(x.toFloat(), 'conv_preds').flatten(); };
+  //     const yloss = (gt, x) => dl.losses.softmaxCrossEntropy(gt, xtoy(x));
+  //     var loss_func = function(x) { return yloss(oglabel, x); };
+  //     let _grad_func = function () { return loss_func(img3); }
 
-  /* // locate dy!?
-  Gradients.grad = function (f) {
-    util.assert(util.isFunction(f), 'The f passed in grad(f) must be a function');
-    return function (x, dy) {
-        util.assert(x instanceof tensor_1.Tensor, 'The x passed in grad(f)(x) must be a tensor');
-        util.assert(dy == null || dy instanceof tensor_1.Tensor, 'The dy passed in grad(f)(x, dy) must be a tensor');
-        var _a = environment_1.ENV.engine.gradients(function () { return f(x); }, [x], dy), value = _a.value, grads = _a.grads;
-*/
-  // var _im = dl.environment.ENV.engine.gradients(function() { return dl.losses.softmaxCrossEntropy(hclabel, xtoy(img)); }, [img]);
+  //     var _im = dl.environment.ENV.engine.gradients(_grad_func, [img3]);
+  //     let im_gradients = _im.grads[0];
 
-  let _grad_func = function () { return loss_func(img); }
-  console.log("what is _grad_func?", typeof _grad_func);
-  var _im = dl.environment.ENV.engine.gradients(_grad_func, [img]);
-
-  // Able to get the gradients!
-  let im_gradients = _im.grads[0];
-  // console.log("printing gradients of img", _im, _im.grads[0]);
-  dl.print(_im.grads[0]);
-
-  // let b = loss_func(img);
-  // b.print(); 
-  // console.log("b loss ", b);
-  // let f_loss = x => dl.losses.softmaxCrossEntropy(hclabel, logits);
-
-/*
-  const g_func = dl.grad(loss_func);
-  console.log("gfunc", g_func);
-  g_func(img).print();
-*/
-
-
-  // const cost = optimizer.computeGradients(() => {
-      adv_img = generate_adv_xs(hclabel, img, logits, im_gradients, eps);
-      // return dl.losses.softmaxCrossEntropy(hclabel, logits).mean();
-  // });
-  return adv_img;
+  //     return generate_adv_xs(img, im_gradients, eps);
+  // }
 }
 
-
-function generate_adv_xs(label, x2d, logits, grads, eps) {
-    // let _loss = dl.losses.softmaxCrossEntropy(label, logits);
-    // let loss_grad_func = dl.grad( () => { return _loss });
-    // let grad = loss_grad_func(x2d);
+function generate_adv_xs(img4channel, grads, eps) {
     let scaled_grad = scale_grad(grads, eps);
-    let perturbed_img = dl.add(dl.cast(x2d,'float32'), scaled_grad)
-      .clipByValue(MIN_PIXEL_VALUE, MAX_PIXEL_VALUE);
+    const zeroes = new Uint8Array(51529);
+    let alpha_channel = dl.tensor3d(zeroes, [227, 227, 1]);  // [0, 0,... 0, 0] (227)
+
+    // concat the all-zeros alpha channel with 3-channel gradients from tf.gradients()
+    let expanded_grad = dl.concat([scaled_grad, alpha_channel], 2); // 227,227,4
+    // Add perturbation as in FGSM
+    let perturbed_img = dl.add(dl.cast(img4channel,'float32'), expanded_grad);
+    // perturbed_img.print();
     return perturbed_img;
 }
 
