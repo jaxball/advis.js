@@ -6,7 +6,7 @@ AdVis.js is an interactive webtool that lets anyone to explore adversarial attac
 - **Collaborator(s)**: Dilara Soylu
 - **Research Poster**: [here](http://www.jlin.xyz/papers/advis_poster_v2.pdf)
 
-![Screenshot](public/thumbnail.png)
+![Screenshot](public/thumbnail_scale.png)
 System developed with Tensorflow.js and React, referencing open source components from [PoloClub](https://github.com/poloclub)@Georgia Tech.
  
 ## Usage
