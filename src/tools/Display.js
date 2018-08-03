@@ -22,6 +22,7 @@ const CANVAS_HEIGHT = 227;
 class Display extends Component {
   constructor(props) {
     super(props);
+    console.log("props", props);
     this.state = {
       srcImageArr: '',
       srcImage: this.props.srcImage,
@@ -33,6 +34,12 @@ class Display extends Component {
       sliderValue: 0,
       lastSelectedRow: []
     };
+  }
+
+  updateImage = e => {
+    console.log("entering updateImage");
+    this.setState({srcImage: e});
+    // var disp = this.state.attackDisplays[0];
   }
 
   drawCAM = (e) => {
@@ -95,18 +102,26 @@ class Display extends Component {
         });
       }.bind(this));
     }.bind(this));
+
+    // if (this.props.onRef != undefined) {
+    //   this.props.onRef(this);
+    // }
   }
 
   componentWillReceiveProps(nProps) {
+    console.log("componentWillReceiveProps");
+     this.setState({srcImage: nProps.srcImage});
     let classes = null;
     if (!this.state.order) {
       classes = Array.from(this.props.topK.keys());
     }
     if (nProps.reset || nProps.srcImage !== this.state.srcImage) {
+      // console.log("enter here");
+      console.log("should get here");
       let ctx = this.state.cCam.getContext('2d');
       ctx.clearRect(0, 0, 227, 227);
       ctx = this.state.cImg.getContext('2d');
-      drawImage(ctx, nProps.image, function() {
+      drawImage(ctx, nProps.srcImage, function() {
         let curImgData = ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         model.predict(curImgData, nProps.net, null, function(top, activation) {
           let rows = createCompRows(top, null);

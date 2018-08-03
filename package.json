@@ -14,9 +14,11 @@
     "material-ui": "^0.20.1",
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
+    "react-image-crop": "^4.0.2",
     "react-scripts": "1.1.4",
     "react-split-pane": "^0.1.82",
-    "react-splitter-layout": "^3.0.0"
+    "react-splitter-layout": "^3.0.0",
+    "typeface-roboto": "0.0.54"
   },
   "scripts": {
     "start": "react-scripts start",

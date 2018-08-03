@@ -21,10 +21,20 @@ class App extends Component {
     this.muiTheme = getMuiTheme({
       palette: {
         primary1Color: teal600,
-        accent1Color: red800
+        accent1Color: red800,
+        image: 'panda.jpg'
       },
     });
+
+    this.state = {
+      image: null,
+    };
   }
+
+  setCroppedImage = e => {
+    this.child.uploadCroppedImage(e);
+  }
+
 
   render() {
     return (
@@ -45,14 +55,14 @@ class App extends Component {
         </div>
 
         <div className="Explanation-intro">
-          <IntroExplanation/>
+          <IntroExplanation setCroppedImage={this.setCroppedImage}/>
         </div>
 
         <div className="toolBox">
-          <CAMTool/>
+          <CAMTool onRef={ref => (this.child = ref)} srcImage={this.state.image} attackDisplays={this.state.attackDisplays}/>
         </div>
 
-        <div className="Explanation-intro">
+        <div className="Explanation-center">
           <DeepDreamExplanation/>
         </div>
 

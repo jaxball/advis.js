@@ -7,13 +7,10 @@ import {Card, FloatingActionButton, RaisedButton} from 'material-ui';
 import ContentAdd from 'material-ui/svg-icons/content/add';
 
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-class CAMBlock extends Component {
+class CAMTool extends Component {
   constructor(props) {
     super(props);
+    props.onRef(this);
     this.state = {
       net: '',
       netStatus: 'Loading model...',
@@ -23,11 +20,10 @@ class CAMBlock extends Component {
       reset: 0,
       brushSize: 15,
       blurSize: 2,
-      attackDisplays: []
+      attackDisplays: [],
     };
-
     // this.net = model.getModel(props.modelName);
-    
+
     model.getModel(props.modelName).then(x => {
       this.net = x;
       let disp = (
@@ -42,6 +38,11 @@ class CAMBlock extends Component {
         netStatus: 'Loaded'
       });
     });
+  }
+
+
+  uploadCroppedImage = e => {
+    this.setState({srcImage: e});
   }
 
   newAttack = (event) => {
@@ -59,10 +60,20 @@ class CAMBlock extends Component {
     });
   };
 
-  render() {
+  render() { 
+    
+    var temp = (<Display 
+         srcImage={this.state.srcImage}
+         net={this.net}
+         ref={(c) => this.mod = c}
+         topK={this.state.topK}
+         disableSlider={false} />);
+
+    var attackDisp = this.state.attackDisplays.map(function(disp){ 
+      return (<div>{temp}</div>); 
+    });
 
     if (this.state.netStatus === "Loaded") {
-
       return (
         <Card initiallyExpanded={true} className="cardSingle">
           <div id="halfColumn">
@@ -74,12 +85,8 @@ class CAMBlock extends Component {
                        disableSlider={true}/>
             </div>
             <div className="rightCol" id="rightStack">
-              {
-                this.state.attackDisplays.map(
-                  function(disp) {
-                    return <div>{disp}</div>
-                  }.bind(this))
-              }
+              
+              {attackDisp}
               <RaisedButton className="addButton"
                             label="New Attack!"
                             onClick={this.newAttack}
@@ -108,7 +115,7 @@ class CAM extends Component {
     return (
       <div className="cardBox">
 
-        <CAMBlock srcImage={'img/panda.png'}
+        <CAMTool onRef={this.props.onRef} srcImage={'img/panda.png'}
                   modelName={model.modelEnum.MOBILE}/>
 
         <FloatingActionButton className="newModelButton" secondary={true}>
