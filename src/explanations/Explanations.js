@@ -55,7 +55,6 @@ export class IntroExplanation extends Component {
   }
 
   onCropChange = crop => {
-    console.log("crop", crop);
     this.setState({ crop });
   }
 

@@ -32,7 +32,8 @@ class Display extends Component {
       order: 0,
       disableSlider: this.props.disableSlider,
       sliderValue: 0,
-      lastSelectedRow: []
+      lastSelectedRow: [],
+      newUpload: false
     };
   }
 
@@ -97,11 +98,25 @@ class Display extends Component {
       model.predict(curImgData, this.props.net, null, function(top, activation) {
         let rows = createCompRows(top, null);
         this.setState({
-          results: rows,
-          activation: activation
+          results: rows, 
+          activation: activation, 
         });
+
+        const canvas = this.state.cImg.getContext('2d');
+        this.state.srcImageArr = canvas.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT).data;
+        this.state.srcImageData = canvas.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        this.state.srcCanvas = canvas;
+        // console.log('cached srcImageData', this.state.srcImageData);
+
       }.bind(this));
     }.bind(this));
+
+    // console.log('First eps change. Saving the original image.');
+    // ctx = this.state.cImg.getContext('2d');
+    // this.state.srcImageArr = ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT).data;
+    // this.state.srcImageData = ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    // this.state.srcCanvas = ctx;
+    // console.log('cached srcImageData', this.state.srcImageData);
 
     // if (this.props.onRef != undefined) {
     //   this.props.onRef(this);
@@ -110,14 +125,19 @@ class Display extends Component {
 
   componentWillReceiveProps(nProps) {
     console.log("componentWillReceiveProps");
-     this.setState({srcImage: nProps.srcImage});
+    this.setState({srcImage: nProps.srcImage, newUpload: nProps.newUpload});
+    this.state.newUpload = nProps.newUpload; 
+    if (this.state.newUpload == true) {
+      this.setState({sliderValue: 0});
+    }
+    // console.log(this.state.newUpload);
+
     let classes = null;
     if (!this.state.order) {
       classes = Array.from(this.props.topK.keys());
     }
     if (nProps.reset || nProps.srcImage !== this.state.srcImage) {
       // console.log("enter here");
-      console.log("should get here");
       let ctx = this.state.cCam.getContext('2d');
       ctx.clearRect(0, 0, 227, 227);
       ctx = this.state.cImg.getContext('2d');
@@ -138,15 +158,19 @@ class Display extends Component {
 
   handleSlider = (event, eps) => {
     console.log("handleSlider");
+    if (eps == this.state.sliderValue) {
+      return;
+    }
     this.setState({sliderValue: eps});
+    console.log(this.state.newUpload);
 
     const ctx = this.state.cImg.getContext('2d');
-    // console.log(this.props.srcImage); 
-    if (this.state.srcImageArr === '' || this.state.srcImageArr !== this.props.srcImage ) {
-      console.log('First eps change. Saving the original image.');
+    if (this.state.srcImageArr !== this.props.srcImage && this.state.newUpload) {
+      console.log('New image uploaded. Recache original source data.');
       this.state.srcImageArr = ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT).data;
       this.state.srcImageData = ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
       this.state.srcCanvas = ctx;
+      this.state.newUpload = false;
     }
 
     // 4-channel img with alpha
@@ -174,6 +198,7 @@ class Display extends Component {
           ctxCAM.clearRect(0, 0, 227, 227);
           this.drawCAM(this.state.lastSelectedRow);
       });
+
     // } else {
     //   console.log("display.js oglabel cached! ");
     //   const perturbedImg = model.get_adv_xs(this.props.net, _img, _img3, eps);

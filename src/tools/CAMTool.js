@@ -21,6 +21,7 @@ class CAMTool extends Component {
       brushSize: 15,
       blurSize: 2,
       attackDisplays: [],
+      newUpload: false
     };
     // this.net = model.getModel(props.modelName);
 
@@ -28,6 +29,7 @@ class CAMTool extends Component {
       this.net = x;
       let disp = (
         <Display srcImage={this.state.srcImage}
+         newUpload={this.state.newUpload}
          net={this.net}
          ref={(c) => this.mod = c}
          topK={this.state.topK}
@@ -42,13 +44,14 @@ class CAMTool extends Component {
 
 
   uploadCroppedImage = e => {
-    this.setState({srcImage: e});
+    this.setState({srcImage: e, newUpload: true});
   }
 
   newAttack = (event) => {
     console.log("newAttack: button clicked");
     let disp = (
       <Display srcImage={this.state.srcImage}
+       newUpload={this.state.newUpload}
        net={this.net}
        ref={(c) => this.mod = c}
        topK={this.state.topK}
@@ -64,6 +67,7 @@ class CAMTool extends Component {
     
     var temp = (<Display 
          srcImage={this.state.srcImage}
+         newUpload={this.state.newUpload}
          net={this.net}
          ref={(c) => this.mod = c}
          topK={this.state.topK}
@@ -79,6 +83,7 @@ class CAMTool extends Component {
           <div id="halfColumn">
             <div className="leftCol">
               <Display srcImage={this.state.srcImage}
+                       newUpload={this.state.newUpload}
                        net={this.net}
                        ref={(c) => this.mod = c}
                        topK={this.state.topK}
