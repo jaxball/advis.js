@@ -141,7 +141,8 @@ class Display extends Component {
     this.setState({sliderValue: eps});
 
     const ctx = this.state.cImg.getContext('2d');
-    if (this.state.srcImageArr === '') {
+    // console.log(this.props.srcImage); 
+    if (this.state.srcImageArr === '' || this.state.srcImageArr !== this.props.srcImage ) {
       console.log('First eps change. Saving the original image.');
       this.state.srcImageArr = ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT).data;
       this.state.srcImageData = ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
