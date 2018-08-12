@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import * as dl from '@tensorflow/tfjs';
 import {MobileNet} from '../models/mobilenet/dist/mobilenet.js';
 import * as mobilenet from '../models/mobilenet';
+import normalize from 'normalize-to-range';
 
 
 export var modelEnum = { 
@@ -124,12 +125,21 @@ export function get_adv_xs(net, img, img3, eps) {
 }
 
 function generate_adv_xs(img4channel, grads, eps) {
-    let scaled_grad = scale_grad(grads, eps);
+    let perturbations = scale_grad(grads, eps);
     const zeroes = new Uint8Array(51529);
-    let alpha_channel = dl.tensor3d(zeroes, [227, 227, 1]);  // [0, 0,... 0, 0] (227)
+    // TODO: https://www.mathworks.com/matlabcentral/answers/88650-how-to-display-a-matrix-with-negative-values-as-a-image
+    // scale the negative values so we have 0 in the middle of the RGB values
+    // let pert_arr = perturbations.dataSync();
+    // var normalized_pert = normalize(pert_arr, 10, 128);
+    // console.log("generate_adv_xs - perturbations", normalized_pert);
+    // var pert_tensor = dl.tensor(normalized_pert).reshapeAs(perturbations);
 
+    let alpha_channel = dl.tensor3d(zeroes, [227, 227, 1]);  // [0, 0,... 0, 0] (227)
     // concat the all-zeros alpha channel with 3-channel gradients from tf.gradients()
-    let expanded_grad = dl.concat([scaled_grad, alpha_channel], 2); // 227,227,4
+    let expanded_grad = dl.concat([perturbations, alpha_channel], 2); // 227,227,4
+    
+    // pert_tensor = dl.concat([pert_tensor, alpha_channel], 2); // test normalizing data
+
     // Add perturbation as in FGSM
     let perturbed_img = dl.add(dl.cast(img4channel,'float32'), expanded_grad);
     // perturbed_img.print();

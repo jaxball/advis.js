@@ -167,6 +167,20 @@ export class DeepDreamExplanation extends Component {
   render() {
     return (
       <div style={{fontFamily: "Roboto"}}>
+        <h3> Nuts and bolts of an attack </h3>
+        <img src={window.location.origin + '/fgsm_illus.png'} style={{width: "100%", bottom:"25px", right:"15px"}}/> <br />
+        <p>Adversarial attacks are performed by perturbing the input image to a classifier such that it misclassifies the input with high confidence while the modification is imperceptible to humans. A canonical gradient-based attack, called the Fast Gradient Sign method (FGSM), is an effective technique to quickly generate image perturbations and apply them to produce adversarial examples. Through our testing, this method is transferrable to a range of image classification models and correlates with graph-based visual saliency [1] in a novel way [2]. 
+
+          <br /><br />Under the manifold assumption, the objective of an adversarial attack is to "fool" a neural network by moving an input example across its classification boundary in its image manifold. FGSM works by maximizing the activation of the classification network towards an incorrect class by superimposing an adversarial perturbation subject to the max norm constraint that its sum is less than the allowance for precision rounding of bit-limited range storage format. <br /><br /> 
+
+           <img src={window.location.origin + '/fgsm_eq.png'} style={{width: "100%", bottom:"25px", right:"15px"}}/> <br /><br />
+
+            This is because the precision of an individual input feature is limited. For example, digital images often use only 8 bits per pixel so they discard all information below 1/255 of the dynamic range. Because the precision of the features is limited, it is not rational for the classifier to respond differently to an input x than to an adversarial input x˜ = x + η if every element of the perturbation η is smaller than the precision of the features.
+
+         
+          A key parameter to this method is epsilon, which determines the amount of perturbation applied.
+        </p>
+
         <h3> Class Activation Maximization</h3>
         <p>
           AdVis.js lets users explore adversarial attacks by displaying the updates in the classification  scores as the user changes the epsilon value used to generate the attack. Users can also visualize the CAM overlay for a specific class by clicking on one of the rows, as they change the epsilon values. AdVis currently supports Fast Gradient Sign Method attacks.
@@ -184,7 +198,8 @@ export class DeepDreamExplanation extends Component {
         <br />
         <h3> Next Steps </h3>
         <p>
-          In next steps we plan to implement DeepDream feature visualization in the browser as well as Javascript implementations of saliency detection &amp; heatmap overlay. We also plan to introduce more methods of targeted adversarial attacks and under the hood explanations of gradient-based attacks. Stay tuned. Code is public at <a href="https://github.com/jaxball/advis.js">GitHub page</a>.
+          In next steps we plan to implement DeepDream feature visualization in the browser as well as Javascript implementations of saliency detection &amp; heatmap overlay. We also plan to introduce more methods of targeted adversarial attacks and under the hood explanations of gradient-based attacks. Finally, we hope to leverage the underlying of Tensorflow.js to bring adversarial training into the browser for researchers to study defenses against adversarial attacks. <br /><br />
+            Code is made publicly available on <a href="https://github.com/jaxball/advis.js">GitHub</a>.
         </p>
         <p style={{color:'gray', textAlign:'right'}}><em>Jason Lin</em></p>
         <br /><br /><br />

@@ -2,8 +2,7 @@
 
 AdVis.js is an interactive webtool that lets anyone to explore adversarial attacks by dynamically displaying the classification scores and CAM heatmap visualization of the input image as one tunes the strength of perturbation applied to generate the adversarial example, all in real-time. Demo is now live at [http://www.jlin.xyz/advis](http://www.jlin.xyz/advis).
 
-- **Principal Developer**: Jason Lin
-- **Collaborator(s)**: Dilara Soylu
+- **Developers**: Jason Lin, Dilara Soylu
 - **Research Poster**: [here](http://www.jlin.xyz/papers/advis_poster_v2.pdf)
 
 ![Screenshot](public/thumbnail.png)

@@ -7,6 +7,14 @@ import '../App.css';
 import * as dl from '@tensorflow/tfjs';
 
 
+import {scaleSequential} from 'd3-scale';
+import {rgb} from 'd3-color';
+import {interpolateInferno} from 'd3-scale-chromatic'
+
+
+const SCALE = scaleSequential(interpolateInferno).domain([0,1]);
+
+
 const imgStyle = {
   height: 224,
   width: 224,
@@ -33,7 +41,9 @@ class Display extends Component {
       disableSlider: this.props.disableSlider,
       sliderValue: 0,
       lastSelectedRow: [],
-      newUpload: false
+      newUpload: false,
+      origCAM: [],
+      dCam: ''
     };
   }
 
@@ -49,16 +59,51 @@ class Display extends Component {
         let ar = Object.assign([], IMAGENET_CLASSES);
         let row = this.state.results[e[0]];
         let index = ar.indexOf(row.key);
-        drawCAM(this.state.cImg,
+        let newCAM = drawCAM(this.state.cImg,
                 this.props.net,
                 this.state.activation,
                 this.state.cCam,
-                index);
+                index, true);
+
+        // DiffMap computation: 
+        // take CAM.dataSync() and diff between original and new 
+        if (!this.state.disableSlider) {
+          this.drawDiffmap(newCAM);
+        }
+
     } else {
         const ctx = this.state.cCam.getContext('2d');
         ctx.clearRect(0, 0, 227, 227);
     }
   };
+
+  drawDiffmap = (newCAM) => {
+    var i, length = newCAM.length;
+    for(i = 0; i < length; i++) {
+      newCAM[i] = Math.max(0, (newCAM[i]-this.state.origCAM[i]));
+      // newCAM[i] = Math.abs(newCAM[i]-this.state.origCAM[i]);
+    }
+
+    let diff = new Uint8ClampedArray(227*227*4);
+    for (let y = 0; y < 227; y++) {
+        for (let x = 0; x < 227; x++) {
+            let pos = (y * 227 + x) * 4;
+            let col = rgb(SCALE(newCAM[pos/4]));
+            diff[pos] = col.r;
+            diff[pos + 1] = col.g;
+            diff[pos + 2] = col.b;
+            diff[pos + 3] = .6 * 255;
+        }
+    }
+
+    // visualize diff map
+    // console.log('dCAM', newCAM);
+    const ctx = this.state.dCam.getContext('2d');
+    let iData = ctx.createImageData(227, 227);
+    iData.data.set(diff);
+    ctx.putImageData(iData, 0, 0);
+
+  }
 
   orderChanged = (e, row, column) => {
     if (column === 2) {
@@ -108,8 +153,24 @@ class Display extends Component {
         this.state.srcCanvas = canvas;
         // console.log('cached srcImageData', this.state.srcImageData);
 
+        if (this.state.origCAM === undefined || this.state.origCAM.length == 0) {
+          let ar = Object.assign([], IMAGENET_CLASSES);
+          let index = ar.indexOf(rows[0].key);
+          this.state.origCAM = drawCAM(this.state.cImg,
+                                       this.props.net,
+                                       this.state.activation,
+                                       this.state.cCam,
+                                       index, false);
+          console.log("caching original image CAM");
+        }
+        // below is unncessary since we added toggleOverlay boolean to drawCAM
+        // const ctxCAM = this.state.cCam.getContext('2d');
+        // ctxCAM.clearRect(0, 0, 227, 227);
       }.bind(this));
     }.bind(this));
+
+      // this.state.origCAM = this.computeCAM();
+
 
     // console.log('First eps change. Saving the original image.');
     // ctx = this.state.cImg.getContext('2d');
@@ -129,6 +190,8 @@ class Display extends Component {
     this.state.newUpload = nProps.newUpload; 
     if (this.state.newUpload == true) {
       this.setState({sliderValue: 0});
+      this.state.slideValue = 0;
+      console.log(this.state.newUpload, this.state.sliderValue);
     }
     // console.log(this.state.newUpload);
 
@@ -150,6 +213,21 @@ class Display extends Component {
             activation: activation,
             cam: [-1]
           });
+
+          // reset cached CAM
+          if (this.state.dCam) {
+            let ar = Object.assign([], IMAGENET_CLASSES);
+            let index = ar.indexOf(rows[0].key);
+            this.state.origCAM = drawCAM(this.state.cImg,
+                                         this.props.net,
+                                         this.state.activation,
+                                         this.state.cCam,
+                                         index, false);
+            
+            const ctx = this.state.dCam.getContext('2d');
+            ctx.clearRect(0, 0, 227, 227);
+            console.log("caching original image CAM");
+          }
         }.bind(this));
       }.bind(this));
     }
@@ -192,11 +270,23 @@ class Display extends Component {
               results: rows,
               activation: activation
             });
-          }.bind(this));
 
-          const ctxCAM = this.state.cCam.getContext('2d');
-          ctxCAM.clearRect(0, 0, 227, 227);
-          this.drawCAM(this.state.lastSelectedRow);
+            // this.state.lastSelectedRow = rows[0];// initialize CAM map to top class 
+            let ar = Object.assign([], IMAGENET_CLASSES);
+            let index = ar.indexOf(rows[0].key);
+
+            // this should be in a function for generating CAM map and drawing diff
+            let newCAM = drawCAM(this.state.cImg,
+                this.props.net,
+                this.state.activation,
+                this.state.cCam,
+                index, false);
+            this.drawDiffmap(newCAM);
+            // end of function 
+            const ctxCAM = this.state.cCam.getContext('2d');
+            ctxCAM.clearRect(0, 0, 227, 227);
+
+          }.bind(this));
       });
 
     // } else {
@@ -230,7 +320,7 @@ class Display extends Component {
     const epsMin = 0;
     const sliderOn = this.state.disableSlider ? (
       <div>
-        <span className="toggleHint">click rows to toggle heatmap →</span> 
+        <span className="toggleHint">click on row to toggle heatmap →</span> 
       </div>
     ) : (
       <div>
@@ -242,6 +332,21 @@ class Display extends Component {
         <div className="epsLabel">
           Epsilon: {this.state.sliderValue}
         </div>
+      </div>
+    );
+    const diffMapOn = this.state.disableSlider ? <div></div> : (
+      <div>
+          <div style={{display:"inline"}}>
+            <span className="diffmapLabel">CAM Difference vs. Original</span>
+            <Paper style={imgStyle} zDepth={3}>
+             <canvas id="diffmap"
+                      height="227px"
+                      width="227px"
+                      ref={dCam => this.state.dCam = dCam}>
+              </canvas>
+            </Paper>
+          </div>
+          <br /><br />
       </div>
     );
 
@@ -260,6 +365,7 @@ class Display extends Component {
             </canvas>
           </Paper>
           {sliderOn}
+          {diffMapOn}
         </div>
         <Table className="table"
                onRowSelection={this.drawCAM}>

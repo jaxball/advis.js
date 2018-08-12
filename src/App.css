@@ -235,8 +235,16 @@
 }
 
 .toggleHint {
-  margin-left: 2.5em;
+  margin-left: 2em;
   text-align: right;
   font-size: 14px;
   color: gray;
+}
+
+.diffmapLabel {
+  margin-left: 1.0em;
+  text-align: left;
+  font-size: 16px;
+  font-weight: 380;
+  color: black;
 }

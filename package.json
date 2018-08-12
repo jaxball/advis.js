@@ -12,6 +12,7 @@
     "d3-scale-chromatic": "^1.3.0",
     "deeplearn": "^0.5.1",
     "material-ui": "^0.20.1",
+    "normalize-to-range": "^2.0.0",
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
     "react-image-crop": "^4.0.2",

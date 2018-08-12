@@ -31,7 +31,7 @@ export function CAM(softmaxWeights, lastActivation, classX) {
     return cam;
 };
 
-export function drawCAM(img, net, activation, canvas, id) {
+export function drawCAM(img, net, activation, canvas, id, toggleOverlay) {
 
     let weights = net.model.trainableWeights[81];
     weights = weights.val.squeeze().squeeze();
@@ -52,10 +52,14 @@ export function drawCAM(img, net, activation, canvas, id) {
         }
     }
 
-    const ctx = canvas.getContext('2d');
-    let iData = ctx.createImageData(227, 227);
-    iData.data.set(buff);
-    ctx.putImageData(iData, 0, 0);
+    if (toggleOverlay) {
+        const ctx = canvas.getContext('2d');
+        let iData = ctx.createImageData(227, 227);
+        iData.data.set(buff);
+        ctx.putImageData(iData, 0, 0);
+    }
+
+    return cam;
 }
 
 export function createRows(top, callback) {
