@@ -5430,10 +5430,6 @@ normalize-range@^0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/normalize-range/-/normalize-range-0.1.2.tgz#2d10c06bdfd312ea9777695a4d28439456b75942"
 
-normalize-to-range@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/normalize-to-range/-/normalize-to-range-2.0.0.tgz#a68a4fc0007d42f2282b4d71f27ab54cdf8988ea"
-
 normalize-url@^1.4.0:
   version "1.9.1"
   resolved "https://registry.yarnpkg.com/normalize-url/-/normalize-url-1.9.1.tgz#2cc0d66b31ea23036458436e3620d85954c66c3c"

@@ -30,3 +30,11 @@ To run, type:
 yarn start
 
 ```
+
+## To Do
+
+- [ ] Input slider to choose from 1000 classes for targeted adversarial attack 
+- [ ] Migratoin of Robust Adversrial Example from Python example
+- [ ] Adversarial Training with FGSM
+- [ ] Visualize perturbations in real time? i.e. scale the negative values so we have 0 in the middle of the RGB values
+- [ ] Explore Saliency Detection implementation models

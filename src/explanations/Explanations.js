@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import 'typeface-roboto';
-import {RaisedButton, Divider} from 'material-ui';
+import {RaisedButton, Divider, Paper} from 'material-ui';
 import ReactCrop, {makeAspectCrop} from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
+import '../code.css';
 
 export class IntroExplanation extends Component {
   constructor(props) {
@@ -94,7 +95,7 @@ export class IntroExplanation extends Component {
       <div className="Explanation-center">
         <h3>How can we detect an adversarial example?</h3>
         <p>
-          When you see a corrupted image of, let's say, a panda - you recognize it. Probably by the colorful noise. But for the machine it's not a noisy photo of a panda, it's a chihuahua. And it's so sure about it, that it doesn't make sense to question its own decisions. <br /><br /><strong>AdVis.js</strong> lets you explore <em>adversarial attacks</em> by dynamically presenting the classification scores and CAM heatmap visualization as you tune the strength of perturbation applied in real-time. Try changing the epsilon value via the slider below and see for yourself! 
+          When you see a corrupted image of, let's say, a panda - you recognize it. Probably by the colorful noise. But for the machine it's not a noisy photo of a panda, it's a chihuahua. And it's so sure about it, that it doesn't make sense to question its own decisions. <br /><br /><strong>AdVis.js</strong> lets you explore <em>adversarial attacks</em> by animating the classification scores and CAM heatmap visualization as you tune the strength of perturbation applied in real-time. Try changing the epsilon value via the slider below! 
         </p>
       </div>
 
@@ -138,7 +139,7 @@ export class IntroExplanation extends Component {
 
       <Divider />
       <div className="Explanation-center">
-        <p> <strong>Advis.js</strong> is the first to bring visual adversarial example generation and dynamic visualization to the browser for real-time exploration, and we invite developers and researchers to contribute to our growing library of attack vectors. </p>
+        <p> <strong>Advis.js</strong> is the first to bring adversarial example generation and dynamic visualization to the browser for real-time exploration, and we invite developers and researchers to contribute to our growing library of attack vectors. </p>
       </div>
       </div>
     );
@@ -169,7 +170,7 @@ export class DeepDreamExplanation extends Component {
       <div style={{fontFamily: "Roboto"}}>
         <h3> Nuts and bolts of an attack </h3>
         <img src={window.location.origin + '/fgsm_illus.png'} style={{width: "100%", bottom:"25px", right:"15px"}}/> <br />
-        <p>Adversarial attacks are performed by perturbing the input image to a classifier such that it misclassifies the input with high confidence while the modification is imperceptible to humans. A canonical gradient-based attack, called the Fast Gradient Sign method (FGSM), is an effective technique to quickly generate image perturbations and apply them to produce adversarial examples. Through our testing, this method is transferrable to a range of image classification models and correlates with graph-based visual saliency [1] in a novel way [2]. 
+        <p>Adversarial attacks are performed by perturbing the input image to a classifier such that it misclassifies the input with high confidence while the modification is imperceptible to humans. A canonical gradient-based attack, called the Fast Gradient Sign method (FGSM), is an effective technique to quickly generate image perturbations and apply them to produce adversarial examples. Through our testing, this method is transferrable to a range of image classification models and correlates with graph-based visual saliency <a href={'https://papers.nips.cc/paper/3095-graph-based-visual-saliency.pdf'}>[1]</a> in a novel way <a href={'http://jlin.xyz/papers/advis_poster_v2.pdf'}>[2]</a>. 
 
           <br /><br />Under the manifold assumption, the objective of an adversarial attack is to "fool" a neural network by moving an input example across its classification boundary in its image manifold. FGSM works by maximizing the activation of the classification network towards an incorrect class by superimposing an adversarial perturbation subject to the max norm constraint that its sum is less than the allowance for precision rounding of bit-limited range storage format. <br /><br /> 
 
@@ -181,25 +182,84 @@ export class DeepDreamExplanation extends Component {
           A key parameter to this method is epsilon, which determines the amount of perturbation applied.
         </p>
 
+        <h3> Computation Graph for backprop gradients ∂ <sup>loss</sup>&frasl;<sub>image</sub> with TensorFlow.js </h3>
+        <p>
+    
+          <pre><code>
+          <strong>// Get top predicted class index from IMAGENET_CLASSES</strong> 
+          <br />
+          var pred = predictions[0].className;  <strong>// giant panda, etc.</strong> 
+          <br />
+          let tbuffer = dl.buffer([1000]);  <br />
+          tbuffer.set(1, key);  <br />
+          const groundtruth = tbuffer.toTensor(); <br />
+          <br />
+          const y_pred = x => return net.infer(x.toFloat(), 'conv_preds').flatten();  <br />
+          const loss = (gt, x) => dl.losses.softmaxCrossEntropy(gt, y_pred(x)); <br />
+          var loss_func = (x) => return loss(groundtruth, x); <br />
+          <br />
+          let _grad_func = return loss_func(img3);  <br />
+          var _im = dl.environment.ENV.engine.gradients(_grad_func, [img3]);  <br />
+          let im_gradients = _im.grads[0];  <br />
+          <br />
+          <strong>// Scale gradient sign and concat 0s α-channel with 3-channel perturbations </strong> 
+          <br />
+          let perturbations = scale_grad(grads, eps); <br />
+          const zeroes = new Uint8Array(51529); <br />
+          let alpha_channel = dl.tensor3d(zeroes, [227, 227, 1]); <strong>// [0, 0,... 0, 0]</strong><br />
+          peturbations = dl.concat([perturbations, alpha_channel], 2); <strong>// 227, 227, 4</strong><br />
+          let perturbed_img = dl.add(dl.cast(img4channel,'float32'), perturbations);
+          </code></pre>
+        </p>
+
+        <h3> Targeted Adversarial Example</h3>
+        <p>
+          This implementation is currently in the works. <br />
+        </p>
+
+        <h3> Robust Adversarial Example</h3>
+        <p>
+          This implementation is currently in the works. 
+        </p>        
+
         <h3> Class Activation Maximization</h3>
         <p>
           AdVis.js lets users explore adversarial attacks by displaying the updates in the classification  scores as the user changes the epsilon value used to generate the attack. Users can also visualize the CAM overlay for a specific class by clicking on one of the rows, as they change the epsilon values. AdVis currently supports Fast Gradient Sign Method attacks.
-        </p>
-        
-        <h3>How can we efficiently perform adversarial training on a classifier?</h3>
-        <p>
-          That would solve [almost] all the problems. If we train a network not only to predict the labels but also to be able to tell whether you try to fool it -- great. 
-        </p>
 
-        <h3>What does the decision boundary for most classes look like?</h3>
-        <p>
-          We know that it's almost linear. But to what extent? The exact form (or, using a correct fancy term, "topology") of the class boundary would give us insights about the most efficient attack/defense. 
+          <img src={window.location.origin + '/cam.jpg'} style={{width: "100%"}}/>
+
+            <strong>Final layers of MobileNet:</strong>
+            <br />
+            73: "conv_pw_12" <br />
+            74: "conv_pw_12_bn" <br />
+            75: "conv_pw_12_relu" <br />
+            76: "conv_dw_13"  <br />
+            77: "conv_dw_13_bn" <br />
+            78: "conv_dw_13_relu" <br />
+            79: "conv_pw_13"  <br />
+            80: "conv_pw_13_bn" <br />
+            <strong>81: "conv_pw_13_relu"</strong> <br />
+            82: "global_average_pooling2d_1"  <br />
+            83: "reshape_1" <br />
+            84: "dropout" <br />
+            <strong>85: "conv_preds"</strong>  <br />
+            86: "act_softmax" <br />
+            87: "reshape_2" <br />
         </p>
-        <br />
+        <h3> Research Poster </h3>
+        <Paper zDepth={1}>
+          <img src={window.location.origin + '/advis_poster_thumbnail.png'} style={{width: "100%"}}/>
+        </Paper>
+        <p> Some research questions... <br />
+          <ul>
+            <li><em>What does the decision boundary for most classes look like?</em></li>
+            <li><em>How can we efficiently perform adversarial training on a classifier?</em></li>
+          </ul>
+          We know that it's almost linear. But to what extent? The exact form (or, using a correct fancy term, "topology") of the class boundary would give us insights about the most efficient attack/defense. </p>
         <h3> Next Steps </h3>
         <p>
           In next steps we plan to implement DeepDream feature visualization in the browser as well as Javascript implementations of saliency detection &amp; heatmap overlay. We also plan to introduce more methods of targeted adversarial attacks and under the hood explanations of gradient-based attacks. Finally, we hope to leverage the underlying of Tensorflow.js to bring adversarial training into the browser for researchers to study defenses against adversarial attacks. <br /><br />
-            Code is made publicly available on <a href="https://github.com/jaxball/advis.js">GitHub</a>.
+            Code is publicly available on <a href="https://github.com/jaxball/advis.js">GitHub</a>.
         </p>
         <p style={{color:'gray', textAlign:'right'}}><em>Jason Lin</em></p>
         <br /><br /><br />

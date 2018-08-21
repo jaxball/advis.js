@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
-// import * as dl from 'deeplearn';
 import * as dl from '@tensorflow/tfjs';
 import {MobileNet} from '../models/mobilenet/dist/mobilenet.js';
 import * as mobilenet from '../models/mobilenet';
-import normalize from 'normalize-to-range';
 
 
 export var modelEnum = { 
@@ -19,30 +17,12 @@ export async function getModel (modelName){
       const model = await mobilenet.load();
       return model;
 	}
-
 }
 
 /* 
-  Final layers of MobileNet:
+  Layers of MobileNet:
   https://github.com/deepinsight/insightface/issues/40
-
-  73: "conv_pw_12"
-  74: "conv_pw_12_bn"
-  75: "conv_pw_12_relu"
-  76: "conv_dw_13"
-  77: "conv_dw_13_bn"
-  78: "conv_dw_13_relu"
-  79: "conv_pw_13"
-  80: "conv_pw_13_bn"
-  81: "conv_pw_13_relu"
-  82: "global_average_pooling2d_1"
-  83: "reshape_1"
-  84: "dropout"
-  85: "conv_preds"
-  86: "act_softmax"
-  87: "reshape_2"
 */
-
 export function predict(img, net, classes, callback) {
     const pixels = dl.fromPixels(img);
     const resized = dl.image.resizeBilinear(pixels, [227, 227]);
@@ -56,7 +36,6 @@ export function predict(img, net, classes, callback) {
     let mNet = new MobileNet(dl.ENV.math);
     if (classes == null) {
         mNet.getTopKClasses(res, 1000).then((topK) => {
-            // console.log("what is topk? ", topK);
             for (let key in topK) {
                 map.set(key, (topK[key]*100.0).toFixed(2));
             }
@@ -99,12 +78,11 @@ export function get_adv_xs(net, img, img3, eps) {
         }
     });
     const oglabel = tbuffer.toTensor();
-
     const xtoy = x => { return net.infer(x.toFloat(), 'conv_preds').flatten(); };
     const yloss = (gt, x) => dl.losses.softmaxCrossEntropy(gt, xtoy(x));
     var loss_func = function(x) { return yloss(oglabel, x); };
+    
     let _grad_func = function () { return loss_func(img3); }
-
     var _im = dl.environment.ENV.engine.gradients(_grad_func, [img3]);
     let im_gradients = _im.grads[0];
 
@@ -116,10 +94,8 @@ export function get_adv_xs(net, img, img3, eps) {
   //     const yloss = (gt, x) => dl.losses.softmaxCrossEntropy(gt, xtoy(x));
   //     var loss_func = function(x) { return yloss(oglabel, x); };
   //     let _grad_func = function () { return loss_func(img3); }
-
   //     var _im = dl.environment.ENV.engine.gradients(_grad_func, [img3]);
   //     let im_gradients = _im.grads[0];
-
   //     return generate_adv_xs(img, im_gradients, eps);
   // }
 }
@@ -127,20 +103,10 @@ export function get_adv_xs(net, img, img3, eps) {
 function generate_adv_xs(img4channel, grads, eps) {
     let perturbations = scale_grad(grads, eps);
     const zeroes = new Uint8Array(51529);
-    // TODO: https://www.mathworks.com/matlabcentral/answers/88650-how-to-display-a-matrix-with-negative-values-as-a-image
-    // scale the negative values so we have 0 in the middle of the RGB values
-    // let pert_arr = perturbations.dataSync();
-    // var normalized_pert = normalize(pert_arr, 10, 128);
-    // console.log("generate_adv_xs - perturbations", normalized_pert);
-    // var pert_tensor = dl.tensor(normalized_pert).reshapeAs(perturbations);
 
-    let alpha_channel = dl.tensor3d(zeroes, [227, 227, 1]);  // [0, 0,... 0, 0] (227)
     // concat the all-zeros alpha channel with 3-channel gradients from tf.gradients()
-    let expanded_grad = dl.concat([perturbations, alpha_channel], 2); // 227,227,4
-    
-    // pert_tensor = dl.concat([pert_tensor, alpha_channel], 2); // test normalizing data
-
-    // Add perturbation as in FGSM
+    let alpha_channel = dl.tensor3d(zeroes, [227, 227, 1]);  // [0, 0,... 0, 0] (227)
+    let expanded_grad = dl.concat([perturbations, alpha_channel], 2); // 227,227,4   
     let perturbed_img = dl.add(dl.cast(img4channel,'float32'), expanded_grad);
     // perturbed_img.print();
     return perturbed_img;
