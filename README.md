@@ -38,3 +38,11 @@ yarn start
 - [ ] Adversarial Training with FGSM
 - [ ] Visualize perturbations in real time? i.e. scale the negative values so we have 0 in the middle of the RGB values
 - [ ] Explore Saliency Detection implementation (JS) methods
+
+## License
+
+MIT License. See [`LICENSE.md`](LICENSE.md).
+
+## Contact
+
+For questions or support [open an issue][issues].
