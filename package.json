@@ -15,7 +15,7 @@
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
     "react-image-crop": "^4.0.2",
-    "react-scripts": "1.1.4",
+    "react-scripts": "5.0.1",
     "react-split-pane": "^0.1.82",
     "react-splitter-layout": "^3.0.0",
     "typeface-roboto": "0.0.54"
